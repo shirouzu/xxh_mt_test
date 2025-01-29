@@ -1,4 +1,4 @@
-﻿// xxh3 multi-threaded total performance test by H.Shirouzu at 2025-01-29
+// xxh3 multi-threaded total performance test by H.Shirouzu at 2025-01-29
 
 #include <thread>
 #include <condition_variable>
@@ -36,6 +36,7 @@ void worker_proc(char *buf, size_t size, int count)
         XXH3_128bits_update(xxh3State, buf, size);
         digest = XXH3_128bits_digest(xxh3State);
     }
+    XXH3_freeState(xxh3State);
 }
 
 void main_task(int max_thr, char *buf, size_t buf_size, int count)
@@ -44,6 +45,7 @@ void main_task(int max_thr, char *buf, size_t buf_size, int count)
 
     std::vector<std::thread>    workers;
 
+    StartFlag.store(false);
     for (int i=0; i < max_thr; i++)
         workers.emplace_back(worker_proc, buf + i * THR_BUFSZ, THR_BUFSZ, count);
 
@@ -71,4 +73,3 @@ int main()
     for (int i=THR_MAX; i >= 1; i--)
         main_task(i, buf.get(), (size_t)i * THR_BUFSZ, COUNT);
 }
-
